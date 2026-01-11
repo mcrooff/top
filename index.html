@@ -1,19 +1,20 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Озвучка | Mini App</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Заказ озвучки</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
 :root {
-    --bg: #0f0f14;
-    --card: #1a1a22;
-    --accent: #4f9cff;
+    --bg: #0e0f14;
+    --card: #1b1d29;
+    --accent: #4fa3ff;
+    --accent-soft: rgba(79,163,255,0.15);
     --text: #ffffff;
-    --muted: #b3b3c6;
+    --muted: #9fa4c4;
 }
 
 * {
@@ -30,54 +31,167 @@ body {
 
 h1 {
     text-align: center;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 }
 
 .subtitle {
     text-align: center;
     color: var(--muted);
+    font-size: 14px;
     margin-bottom: 24px;
+}
+
+/* ----- КАРТОЧКИ ----- */
+
+.cards {
+    display: grid;
+    gap: 16px;
 }
 
 .card {
     background: var(--card);
-    border-radius: 16px;
+    border-radius: 18px;
     padding: 16px;
-    margin-bottom: 16px;
+    cursor: pointer;
+    transition: 0.2s;
+    border: 1px solid transparent;
+}
+
+.card:hover {
+    border-color: var(--accent);
+    background: linear-gradient(
+        180deg,
+        var(--card),
+        var(--accent-soft)
+    );
+}
+
+.card.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
 }
 
 .card h2 {
-    margin: 0 0 8px 0;
+    margin: 0 0 6px;
+    font-size: 18px;
 }
 
 .card p {
+    margin: 0;
     color: var(--muted);
     font-size: 14px;
-    line-height: 1.4;
+}
+
+/* ----- ФОРМА ----- */
+
+.form {
+    margin-top: 24px;
+    display: none;
+    animation: fade 0.3s ease;
+}
+
+@keyframes fade {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+textarea {
+    width: 100%;
+    min-height: 120px;
+    background: #2a2d3f;
+    border: none;
+    border-radius: 14px;
+    padding: 14px;
+    color: white;
+    font-size: 15px;
+    resize: vertical;
+    margin-bottom: 12px;
 }
 
 button {
     width: 100%;
-    margin-top: 12px;
     padding: 14px;
-    border-radius: 12px;
+    border-radius: 14px;
     border: none;
     background: var(--accent);
-    color: #fff;
+    color: white;
     font-size: 16px;
     cursor: pointer;
 }
 
-button.secondary {
-    background: transparent;
-    border: 1px solid var(--accent);
+button:disabled {
+    opacity: 0.5;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🎙 Заказ озвучки</h1>
+<div class="subtitle">Выберите тип озвучки</div>
+
+<div class="cards">
+    <div class="card" onclick="selectService('Озвучка текста', this)">
+        <h2>🗣 Озвучка текста</h2>
+        <p>Реклама, ролики, презентации, автоответчики</p>
+    </div>
+
+    <div class="card" onclick="selectService('Озвучка видео', this)">
+        <h2>🎬 Озвучка видео</h2>
+        <p>YouTube, Shorts, Reels, обзоры, монтаж</p>
+    </div>
+
+    <div class="card" onclick="selectService('Саунд-дизайн', this)">
+        <h2>🎧 Саунд-дизайн</h2>
+        <p>Эффекты, музыка, атмосфера, брендинг</p>
+    </div>
+</div>
+
+<div class="form" id="form">
+    <h2 id="formTitle">✍️ Опишите задачу</h2>
+
+    <textarea id="text"
+        placeholder="Текст для озвучки, хронометраж, стиль, пожелания"></textarea>
+
+    <button onclick="sendOrder()">📩 Заказать</button>
+</div>
+
+<script>
+const tg = window.Telegram.WebApp;
+tg.expand();
+
+let selectedService = "";
+
+function selectService(service, el) {
+    selectedService = service;
+
+    document.querySelectorAll(".card").forEach(c =>
+        c.classList.remove("active")
+    );
+    el.classList.add("active");
+
+    document.getElementById("form").style.display = "block";
+    document.getElementById("formTitle").innerText =
+        "✍️ " + service;
 }
 
-.form {
-    display: none;
-    margin-top: 24px;
-}
+function sendOrder() {
+    const text = document.getElementById("text").value.trim();
 
-input, textarea, select {
-    width: 100%;
-    margin-bott
+    if (!text) {
+        alert("Пожалуйста, опишите задачу");
+        return;
+    }
+
+    const data = {
+        service: selectedService,
+        text: text
+    };
+
+    tg.sendData(JSON.stringify(data));
+    tg.close();
+}
+</script>
+
+</body>
+</html>
